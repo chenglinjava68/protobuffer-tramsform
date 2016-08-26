@@ -61,13 +61,16 @@ public class TransformerTest {
                 .setEnabled(true);
         Transform.SessionResponse.Builder session= Transform.SessionResponse.newBuilder();
         session.setUser(user);
+        
         Map<String, Transform.User> relations=new HashMap<>();
         relations.put("r0", Transform.User.newBuilder().setUid("u0").build());
         relations.put("r1", Transform.User.newBuilder().setUid("u1").build());
+        
         session.addFriends(Transform.User.newBuilder().setUid("f1").addTags("f1").addTags("f2"));
         session.addFriends(Transform.User.newBuilder().setUid("f2").addTags("f1").addTags("f2"));
         session.putAllRelations(relations);
         Session session1=trans.messageToJava(session.build(), Session.class);
+        
         assertEquals(new String(session1.user.avatar),"abc");
         assert session1.user.uid.equals("uu");
         assert session1.user.enabled1;
