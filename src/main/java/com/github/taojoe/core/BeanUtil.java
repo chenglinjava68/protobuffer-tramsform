@@ -114,6 +114,7 @@ public class BeanUtil {
     protected static FieldOrProperty simpleFieldOrProperty(Object obj, String name, boolean read, boolean write){
         try {
             Field field = obj.getClass().getDeclaredField(name);
+            field.setAccessible(true);
             if(Modifier.isPublic(field.getModifiers())){
                 return new FieldOrProperty(field, null);
             }

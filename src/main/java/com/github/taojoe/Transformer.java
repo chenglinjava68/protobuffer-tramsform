@@ -10,6 +10,8 @@ import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.ByteString;
 
+
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -20,17 +22,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by joe on 4/20/16.
- */
 public class Transformer {
-    private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
+	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    
+	/**
+	 * java Filed value to protbuffMeassage
+	 * @param value
+	 * @param fieldDescriptor
+	 * @return
+	 */
     protected Object javaValueToMessageValue(Object value, Descriptors.FieldDescriptor fieldDescriptor){
         JavaType type=fieldDescriptor.getJavaType();
         if(type.equals(JavaType.BOOLEAN)){
             return value;
-        }else if(type.equals(JavaType.INT) ||type.equals(JavaType.LONG)){
+        }else if(type.equals(JavaType.INT) || type.equals(JavaType.LONG)){
             if(value instanceof BigInteger){
                 if(type.equals(JavaType.INT)){
                     return ((BigInteger) value).intValue();
@@ -54,23 +59,25 @@ public class Transformer {
             } else {
                 return value.toString();
             }
-
         }else if(type.equals(JavaType.ENUM)){
-            try {
                 if (value instanceof String) {
                     return fieldDescriptor.getEnumType().findValueByName((String) value);
                 } else if (value.getClass().isEnum()) {
                     return fieldDescriptor.getEnumType().findValueByName(((Enum) value).name());
                 }
-            }catch (Exception e){
-
-            }
         }else if(type.equals(JavaType.BYTE_STRING)){
             return ByteString.copyFrom(((byte[]) value));
         }
         return null;
     }
-    protected Object massageValueToJavaValue(Object value, Class clz){
+    /**
+     * protobuffMessage  to java Field value
+     * @param value
+     * @param clz
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+	protected Object massageValueToJavaValue(Object value, Class clz){
         String clzName=clz.getName();
         if(clz.equals(Integer.class) || clz.equals(Long.class) || clz.equals(Float.class) || clz.equals(Double.class) ||clz.equals(Boolean.class) ||
                 clz.equals(int.class) || clz.equals(long.class) || clz.equals(float.class) || clz.equals(double.class) || clz.equals(boolean.class)){
@@ -83,20 +90,15 @@ public class Transformer {
                 return ((Descriptors.EnumDescriptor)value).getName();
             }
         }else if(clz.isEnum()){
-            try{
                 if(value instanceof String){
                     return Enum.valueOf(clz, (String) value);
                 }else if(value instanceof Descriptors.EnumValueDescriptor){
                     return Enum.valueOf(clz, ((Descriptors.EnumValueDescriptor) value).getName() );
                 }
-            }catch (Exception e){
-                return null;
-            }
-
         }else if(clz.equals(BigDecimal.class)){
             return new BigDecimal((double)value);
         }else if(clz.equals(LocalDateTime.class)){
-            if(!"".equals(value)) {
+            if(!"".equals(value) ) {
                 try {
                     return LocalDateTime.parse((String) value, dateTimeFormatter);
                 } catch (Exception ex) {
@@ -112,7 +114,12 @@ public class Transformer {
         }
         return null;
     }
-
+    /**
+     * protobuffMessage to javaBean
+     * @param message
+     * @param clz
+     * @return
+     */
     public <T> T messageToJava(MessageOrBuilder message, Class<T> clz){
         List<Descriptors.FieldDescriptor> fields=message.getDescriptorForType().getFields();
         try {
@@ -154,7 +161,6 @@ public class Transformer {
                                 newValue=destMap;
                             }
                         }
-
                     }else if(fieldDescriptor.isRepeated()){
                         ArrayList<Object> destList=new ArrayList<>();
                         if(isValueMessage){
@@ -189,7 +195,14 @@ public class Transformer {
         }
         return null;
     }
-    public <T extends Message.Builder> T javaToMessage(Object bean, T builder){
+    /**
+     * java to protobufMessage
+     * @param bean
+     * @param builder
+     * @return
+     */
+    @SuppressWarnings("rawtypes")
+	public <T extends Message.Builder> T javaToMessage(Object bean, T builder){
         if(bean==null){
             return builder;
         }
